@@ -1,0 +1,218 @@
+<script src="https://rawgit.com/SheetJS/js-xlsx/master/xlsx.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+<script src="https://rawgit.com/SheetJS/js-xlsx/master/jszip.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
+<script async="" src="https://rawgit.com/eligrey/Blob.js/master/Blob.js"/>
+<script async="" src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"/>
+
+<div class='file_h1'>
+	<div class="file_h2">
+		<input type="file" id="my_file_input" accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+		<button  id="btn_exportfile" type="button" class="btn btn-primary"> <span>export</span></button>
+		<button  id="btn_clear" type="button" class="btn btn-primary"><span>clear</span></button>
+	</div>
+</div>
+
+<div class='grid_h1'>
+	<div class='grid_h2'>
+		Record conut: <em id="recordCount"> -- </em>.
+	</div>
+	<div class='grid_h2'>
+		From
+		<input id="firstItemNo" type="text" bindcursor="true">
+		to
+		<input id="lastItemNo" type="text" bindcursor="true">
+		<button id="btn_confirm" type="button" class="btn btn-primary"><span>OK</span></button>
+	</div>
+</div>
+	
+<style>
+em#recordCount{color:red;font-size: 20px}
+div.file_h1{float:left}
+div.file_h2{display:inline}
+div.grid_h1{float:right}
+div.grid_h2{display:block}
+</style>
+
+<script>
+$('#my_file_input').change(function(){
+	filePicked();
+});
+
+$("#btn_exportfile").click(function(){
+	filename="CN_CFFAMD ("+$("#var_typeOfRequest").getText() +")";
+	exportFile(filename, "CN_CFFAMD");
+});
+
+$("#btn_clear").click(function(){
+	grid_setOnchange(gridID);
+	//clearGrid(gridID,false);
+});
+
+$("#btn_confirm").click(function(){
+	fillGrid($("#firstItemNo").val(),$("#lastItemNo").val());
+});
+
+/*
+$("#firstItemNo").change(function(){
+	var n1=Number($("#firstItemNo").val()),n2=Number($("#lastItemNo").val());
+	if(n1<1){ //不能小于1
+		n1=1;
+		$("#firstItemNo").val(n1);
+	}
+	if(n1>n2){ //大于n2时调整n2的值
+		$("#lastItemNo").val(n1);
+	}
+});
+
+$("#lastItemNo").change(function(){
+	var n1=Number($("#firstItemNo").val()),n2=Number($("#lastItemNo").val());
+	n2=Math.max(n1,n2); //不能小于n1
+	n2=Math.min(n2,file_data.length); //大于数据总数
+	$("#lastItemNo").val(n2);
+});
+*/
+
+</script>
+
+<script>
+function filePicked() {
+    // Get The File From The Input
+    var oFile = $('#my_file_input').prop('files')[0];//获取到文件列表
+    // Create A File Reader HTML5
+    var reader = new FileReader();
+    reader.readAsArrayBuffer(oFile);
+    // Ready The Event For When A File Gets Selected
+    reader.onload = function(evt) {
+		var data = evt.target.result;
+		var arr = String.fromCharCode.apply(null, new Uint8Array(data));
+		var xlsx = XLSX.read(btoa(arr), {type: 'base64'});
+		var sheetName = xlsx.SheetNames[0];
+		var file_data = XLSX.utils.sheet_to_row_object_array(xlsx.Sheets[sheetName], {header:1});
+		file_data.splice(0,1); //删除标题行
+		
+		Content=JSON.parse(JSON.stringify(file_data));
+		
+		$("em#recordCount").text(Content.length);
+		var startIndex=1,endIndex=Math.min(20,Content.length);
+		$("#firstItemNo").val(startIndex);
+		$("#lastItemNo").val(endIndex);
+		fillGrid(startIndex,endIndex);
+	};
+}
+
+function fillGrid(startIndex,endIndex){ //填充grid
+	var data=JSON.parse(JSON.stringify(Content)); //得到数据的副本
+	var dataRowNum=endIndex-startIndex+1; //总共需要填充的行数，首尾都填充
+	var rObjArr=data.splice(startIndex-1,dataRowNum); //从原始数据中得到需要填充的数据
+	var gridRowNum=$("#"+gridID).getNumberRows();  //grid的行数
+	for(var i=gridRowNum;i<dataRowNum;i++){ 
+		$("#"+gridID).addRow();//补足grid不足的行
+	}
+	for(var i=gridRowNum;i>dataRowNum;i--){
+		$("#"+gridID).deleteRow(i);//删除grid多余的行
+	}
+	$.each(rObjArr, function( indexR, valueR ) { //赋值给grid
+		$.each(valueR, function( indexC, valueC ) {
+			$("#"+gridID).setValue(valueC, indexR+1, indexC+1);
+		});
+	});
+	$($("#"+gridID).find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")).each(function(index,element){
+		$(element).text(Number(startIndex)+Number(index)); //修改grid的index内容
+	});	
+}
+</script>
+
+<script>
+function Grid2Array(gridID){
+	var data=[];
+	var grid=$("#"+gridID);
+	var grid_col_num=getGridColumnNumber(gridID);
+	label=[];
+	for(var i=1;i<=grid_col_num;i++){
+		label.push($("#"+gridID).getLabel(i));
+	}
+	data.push(label); //标题行
+		
+	for(var i=1;i<=grid.getNumberRows();i++){
+		var row_data=[];
+		for(var j=1;j<=grid_col_num;j++){
+			row_data.push(grid.getValue(i,j).replace(/(^\s*)|(\s*$)/g,""));
+		}
+			data.push(row_data);
+		}
+	return(data);	
+}
+
+function exportFile(fileName,sheetName){
+	var data=Grid2Array(gridID);
+	var ws_name = sheetName;
+	var wb = {SheetNames:[],Sheets:{}};
+		
+	var ws = XLSX.utils.aoa_to_sheet(data);
+
+	/* add worksheet to workbook */
+	wb.SheetNames.push(ws_name);
+	wb.Sheets[ws_name] = ws;
+	var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+
+	function s2ab(s) {
+	var buf = new ArrayBuffer(s.length);
+	var view = new Uint8Array(buf);
+	for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+	return buf;
+	}
+	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fileName+'.xls');
+}
+</script>
+
+<script>
+//Some customize function for grid control
+function clearGrid(gridID,needEmpty){
+	var grid=$("#"+gridID);
+	var rn=grid.getNumberRows();
+	if(needEmpty){ //只删除空行
+		while(rn>0){
+			if(isEmptyRow(gridID,rn)){
+				grid.deleteRow(rn);
+			}
+			rn--;
+		}
+	}else{
+		while(rn>0){
+			grid.deleteRow(rn);
+			rn--;
+		}
+	}
+}
+
+function getGridColumnNumber(gridID){
+	return $("#"+gridID).find(".row.pmdynaform-grid-thead.pmdynaform-grid-thead-static").find(".pmdynaform-grid-field-static").not(".wildcard").not(":hidden").length;
+}
+
+function isEmptyRow(gridID,rowID){
+	var col_num = getGridColumnNumber(gridID);
+	for(var i=1;i<=col_num;i++){
+		if($("#"+gridID).getValue(rowID,i)!=="")
+			return false;
+	}
+	return true;
+}
+
+function grid_ChangeToContent(gridID){
+	var grid=$("#"+gridID);
+	var rn=grid.getNumberRows(),cn=getGridColumnNumber(gridID);
+	for(var r=1;r<=rn;r++){
+		for(var c=1;c<=cn;c++){
+			var g=grid.getControl(r, c);
+			g.attr({'row':r,'column':c});
+			g.change(function(){
+				var t=$(this);
+				var row=$(this).attr('row'),col=$(this).attr('column');
+				var cindex=$($("#"+gridID).find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[t.attr('row')-1]).text();
+				Content[cindex-1][col-1]=t.val(); //在数据中进行修改
+			});
+		}
+	}
+}
+</script>

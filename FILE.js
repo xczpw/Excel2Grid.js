@@ -3,7 +3,6 @@ function FILE(fileID){
 	
 	file.fileID=fileID;
 	
-	file.data=-1;
 	file.getData=function(){
 		// Get The File From The Input
 		var oFile = $('#'+this.fileID).prop('files')[0];//获取到文件列表
@@ -14,7 +13,7 @@ function FILE(fileID){
 		reader.onload = function(evt) {
 			var data = evt.target.result;
 			try{
-				var arr = String.fromCharCode.apply(null, new Uint8Array(data));
+				var arr = String.fromCharCode.apply(null, new Uint8Array(reader.data));
 				var xlsx = XLSX.read(btoa(arr), {type: 'base64'});
 				var sheetName = xlsx.SheetNames[0];
 				var file_data = XLSX.utils.sheet_to_row_object_array(xlsx.Sheets[sheetName], {header:1});
@@ -44,7 +43,5 @@ function FILE(fileID){
 		saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fileName+'.xls');
 	}
 	
-	while(file.data!==-1){
-		return file;
-	}
+	return file;
 }

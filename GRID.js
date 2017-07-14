@@ -83,8 +83,8 @@ function GRID(gridID){
 		}
 	}
 	
-	this.onAddRow(function(){this.row_num++;});
-	this.onDeleteRow(function(){this.row_num--;});
+	grid.onAddRow(function(){this.row_num++;});
+	grid.onDeleteRow(function(){this.row_num--;});
 	
 	return grid;
 }

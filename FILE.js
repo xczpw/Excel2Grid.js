@@ -3,6 +3,7 @@ function FILE(fileID){
 	
 	file.fileID=fileID;
 	
+	file.data=-1;
 	file.getData=function(){
 		// Get The File From The Input
 		var oFile = $('#'+this.fileID).prop('files')[0];//获取到文件列表
@@ -43,5 +44,7 @@ function FILE(fileID){
 		saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fileName+'.xls');
 	}
 	
-	return file;
+	while(file.data!==-1){
+		return file;
+	}
 }

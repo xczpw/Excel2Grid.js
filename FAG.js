@@ -3,8 +3,7 @@ function FAG(GRID,FILE){
 	var fag=new Object();
 	fag.GRID=GRID;
 	fag.FILE=FILE;
-	fag.Content=FILE?JSON.parse(JSON.stringify(FILE.data)):[]; //独立存储一份内容，此内容可以来源于FILE，如无文件就为空数组
-	
+		
 	fag.checkFILE=function(){ //检查导入的文件是否与grid匹配
 		var waring_msg="";
 		var grid=this.GRID,file_data=this.FILE.data;
@@ -63,9 +62,7 @@ function FAG(GRID,FILE){
 		var grid=this.GRID;
 		var rn=grid.row_num,cn=grid.col_num;
 		grid.setOnAddRow('close'); //关闭监听
-		$("#"+gridID).addRow();//为验证有效性在最后增加一行
-		grid.setOnAddRow('open',zpw()); //开启监听
-
+		grid.addRow();//为验证有效性在最后增加一行
 		for(var r=1;r<=this.Content.length;r++){
 			for(var c=1;c<=cn;c++){ //只在grid能显示的范围内验证
 				var v=Content[r-1][c-1];
@@ -81,49 +78,78 @@ function FAG(GRID,FILE){
 		}
 		grid.setOnDeleteRow('close');//关闭监听
 		grid.deleteRow(rn+1);//删除增加的那行
-		grid_setOnDeleteRow('open',zpw());//开启监听
 		return index_notCorrect;
 	}
 	
+	fag.fillGrid=function(index_array){ //根据对应的index填充grid
+		var data=JSON.parse(JSON.stringify(this.Content)); //得到数据的副本
+		var rObjArr=[];
+		for(var i=0;i<index_array.length;i++){
+			rObjArr.push(data[index_array[i]-1]); //从原始数据中得到需要填充的数据
+		}
+		var grid=this.GRID;
+		var rn=grid.row_num;  //
+		grid.setOnAddRow('close'); //关闭监听
+		for(var i=rn;i<index_array.length;i++){		
+			grid.addRow();//补足grid不足的行
+		}
+		grid.setOnDeleteRow('close');//关闭监听
+		for(var i=rn;i>index_array.length;i--){
+			grid.deleteRow(i);//删除grid多余的行
+		}
+		$.each(rObjArr, function( indexR, valueR ) { //赋值给grid
+			$.each(valueR, function( indexC, valueC ) {
+				grid.setValue(valueC, indexR+1, indexC+1);
+			});
+		});
+		$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")).each(function(index,element){
+			$(element).text(index_array[index]); //修改grid的index内容
+		});	
+	}
+		
+	fag.fillGrid_Range=function(startIndex,endIndex){
+		var index_need=[];
+		for(var i=Number(startIndex);i<=Number(endIndex);i++){
+			index_need.push(i);
+		}
+		this.fillGrid(index_need);
+	}
 	
+	fag.Content=FILE?fag.modifyFileData():[]; //独立存储一份内容，此内容可以来源于FILE，如无文件就为空数组
+	
+	
+	fag.changeContentWithGrid=function(fun){
+		var grid=this.GRID;
+		grid.setOnchange(function(row,col,val){
+			var cindex=$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
+			this.Content[cindex-1][col-1]=val; //在数据中进行修改
+		});
+		grid.setOnAddRow('open',function(r,g,index){
+			this.Content.push(Array(this.col_num)); //在Content后追加一空记录
+			$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(this.Content.length); //修改增加行的index
+			//重设change事件
+			grid.setOnchange(function(row,col,val){
+				var cindex=$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
+				this.Content[cindex-1][col-1]=val; //在数据中进行修改
+			});
+		});
+		grid.setOnDeleteRow('open',function(r,g,index){
+			var index_array={};
+			$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")).each(function(i,element){
+				index_array[Number(i)+1]=$(element).text();
+			});
+			var cindex = index_array[index]; //得到Content对应的index
+			Content.splice(Number(cindex)-1,1); //在Content删除对应项
+			delete index_array[index];
+			
+			//重设change事件
+			grid.setOnchange(function(row,col,val){
+				var cindex=$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
+				this.Content[cindex-1][col-1]=val; //在数据中进行修改
+			});
+		});
+		fun();
+	}
 	
 	return fag;
-}
-	
-
-function fillGrid(index_array){ //根据对应的index填充grid
-	var data=JSON.parse(JSON.stringify(Content)); //得到数据的副本
-	var rObjArr=[];
-	for(var i=0;i<index_array.length;i++){
-		rObjArr.push(data[index_array[i]-1]); //从原始数据中得到需要填充的数据
-	}
-	var gridRowNum=$("#"+gridID).getNumberRows();  //
-	grid_setOnAddRow(gridID,'close'); //关闭监听
-	for(var i=gridRowNum;i<index_array.length;i++){		
-		$("#"+gridID).addRow();//补足grid不足的行
-	}
-	grid_setOnAddRow(gridID,'open'); //开启监听
-	grid_setOnDeleteRow(gridID,'close'); //关闭监听
-	for(var i=gridRowNum;i>index_array.length;i--){
-		$("#"+gridID).deleteRow(i);//删除grid多余的行
-	}
-	grid_setOnDeleteRow(gridID,'open'); //开启监听
-	$.each(rObjArr, function( indexR, valueR ) { //赋值给grid
-		$.each(valueR, function( indexC, valueC ) {
-			$("#"+gridID).setValue(valueC, indexR+1, indexC+1);
-		});
-	});
-	$($("#"+gridID).find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")).each(function(index,element){
-		$(element).text(index_array[index]); //修改grid的index内容
-	});	
-	
-	//grid_changeToContent(gridID); //设置修改事件，修改的内容会保存
-}
-
-function fillGrid_Range(startIndex,endIndex){
-	var index_need=[];
-	for(var i=Number(startIndex);i<=Number(endIndex);i++){
-		index_need.push(i);
-	}
-	fillGrid(index_need);
 }

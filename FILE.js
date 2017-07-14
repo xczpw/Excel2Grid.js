@@ -17,10 +17,10 @@ function FILE(fileID){
 				var xlsx = XLSX.read(btoa(arr), {type: 'base64'});
 				var sheetName = xlsx.SheetNames[0];
 				var file_data = XLSX.utils.sheet_to_row_object_array(xlsx.Sheets[sheetName], {header:1});
-				file.data=file_data;
+				this.data=file_data;
 			}catch(e){ 
 				alert(e.name + ": " + e.message);
-				file.data=[];
+				this.data=[];
 			}
 		}
 	}

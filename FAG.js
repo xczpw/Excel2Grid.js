@@ -94,7 +94,11 @@ function FAG(GRID,FILE){
 	
 	fag.linkGridToContent=function(){
 		var grid=this.GRID;
-		grid.refresh(fun_c,fun_a,fun_d);
+		grid.fun_c=fun_c;
+		grid.fun_a=fun_a;
+		grid.fun_d=fun_d;
+		
+		grid.refresh();
 		
 		function fun_c(row,col,val){
 			var cindex=$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
@@ -102,7 +106,7 @@ function FAG(GRID,FILE){
 		}
 		function fun_a(r,g,index){
 			fag.Content.push(Array(grid.col_vis.length)); //在Content后追加一空记录
-			$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(this.Content.length); //修改增加行的index
+			$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(fag.Content.length); //修改增加行的index
 			grid.setOnchange(fun_c);//重设change事件
 		}
 		function fun_d(r,g,index){
@@ -120,25 +124,41 @@ function FAG(GRID,FILE){
 	fag.checkContent=function(){ //按照grid要求检查Content的数据有效性
 		var index_notCorrect=[];
 		var grid=this.GRID;
-		var rn=grid.row_num,cn=grid.col_num;
+		var rn=grid.row_num,cn=grid.col_vis.length;
 		grid.setOnAddRow('close'); //关闭监听
 		grid.addRow();//为验证有效性在最后增加一行
 		for(var r=1;r<=this.Content.length;r++){
 			for(var c=1;c<=cn;c++){ //只在grid能显示的范围内验证
-				var v=Content[r-1][c-1];
-				grid.setValue(v,rn+1,c);
-				var situation_1=(grid.getControl(rn+1,c).parent().find(".pmdynaform-message-error").length>0);//显示报错
-				var situation_2=(v!="" && grid.getValue(rn+1,c)=="");//内容未被正确赋值
-				if(situation_1||situation_2){
+				var v=this.Content[r-1][c-1];
+				var ct=grid.col_vis[c-1]; //grid中column的真实位置(可能中间存在隐藏列)
+				grid.setValue(v,rn+1,ct);
+				
+				if(showError(grid,rn+1,ct) || notFilled(v,grid,rn+1,ct) || NullWhenRequired(v,grid,ct)){
 					index_notCorrect.push(r);
 					break; //一行存在一处错误即记录
 				}
-				if(!v && grid.getValue(rn+1,c)!=""){Content[r-1][c-1]=grid.getValue(rn+1,c);} //如果Content没有被赋值，则取默认值（dropdown下会出现此问题）
+				if(!v && grid.getValue(rn+1,c)!=""){grid.Content[r-1][c-1]=fag.getValue(rn+1,c);} //如果Content没有被赋值，则取默认值
 			}
 		}
 		grid.setOnDeleteRow('close');//关闭监听
 		grid.deleteRow(rn+1);//删除增加的那行
 		return index_notCorrect;
+	}
+	
+	function showError(grid,row,col){ //显示报错(validate处的正则表达式)
+		return (grid.getControl(row,col).parent().find(".pmdynaform-message-error").length>0);
+	}
+	
+	function notFilled(val,grid,row,col){ //内容未被正确赋值(值与sql的内容不同)
+		return (val!="" && grid.getValue(row,col)=="");
+	}
+	
+	function NullWhenRequired(val,grid,col){ //必填项为空
+		var crs=grid.col_required;
+		if(crs.indexOf(col)>0 && val==""){ //该字段必填但为空
+			return true;
+		}
+		return false;
 	}
 	
 	return fag;

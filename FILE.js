@@ -1,11 +1,9 @@
 function FILE(fileID){
 	var file = new Object();
-	
-	file.fileID=fileID;
-	
-	file.getData=function(){ //异步操作，该函数直接使用可能会出现问题
+
+	file.initialize=function(fun){ //异步操作，该函数直接使用可能会出现问题
 		// Get The File From The Input
-		var oFile = $('#'+this.fileID).prop('files')[0];//获取到文件列表
+		var oFile = $('#'+fileID).prop('files')[0];//获取到文件列表
 		// Create A File Reader HTML5
 		var reader = new FileReader();
 		reader.readAsArrayBuffer(oFile);
@@ -18,6 +16,7 @@ function FILE(fileID){
 				var sheetName = xlsx.SheetNames[0];
 				var file_data = XLSX.utils.sheet_to_row_object_array(xlsx.Sheets[sheetName], {header:1});
 				file.data=file_data;
+				fun();
 			}catch(e){ 
 				alert(e.name + ": " + e.message);
 			}

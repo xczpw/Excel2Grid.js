@@ -78,6 +78,8 @@ function GRID(gridID){
 		}else{ //开启监听
 			this.onAddRow(function(r, g, index){
 				fun(r,g,index);
+				
+				debugger;
 			});
 		}
 	}
@@ -88,6 +90,8 @@ function GRID(gridID){
 		}else{	 //开启监听
 			this.onDeleteRow(function(r, g, index){
 				fun(r, g, index);
+				
+				debugger;
 			});
 		}
 	}

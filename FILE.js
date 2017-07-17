@@ -13,7 +13,7 @@ function FILE(fileID){
 		reader.onload = function(evt) {
 			var data = evt.target.result;
 			try{
-				var arr = String.fromCharCode.apply(null, new Uint8Array(reader.data));
+				var arr = String.fromCharCode.apply(null, new Uint8Array(data));
 				var xlsx = XLSX.read(btoa(arr), {type: 'base64'});
 				var sheetName = xlsx.SheetNames[0];
 				var file_data = XLSX.utils.sheet_to_row_object_array(xlsx.Sheets[sheetName], {header:1});

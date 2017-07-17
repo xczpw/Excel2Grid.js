@@ -42,14 +42,13 @@ function FAG(GRID,FILE){
 	
 	//根据grid修剪file_data的数据长度，补足Null，删除多余项
 	fag.modifyFileData=function(){
-		var file_data=this.FILE.data;
-		file_data.splice(0,1); //删除表头
-		var data=JSON.parse(JSON.stringify(file_data));
-		var cn=this.GRID.row_num;
+		var data=JSON.parse(JSON.stringify(this.FILE.data));
+		data.splice(0,1); //删除表头
+		var cn=this.GRID.col_vis.length;
 		for(var i=0;i<data.length;i++){
 			var dr=data[i];
 			dr=dr.splice(0,cn); //截取需要的字段
-			for(var j=0;j<dr.length;j++){
+			for(var j=0;j<cn;j++){
 				if(dr[j]==null){dr[j]="";} //空值用""填充
 			}		
 			data[i]=dr;
@@ -57,30 +56,8 @@ function FAG(GRID,FILE){
 		return data;
 	}
 	
-	fag.checkContent=function(){ //按照grid要求检查Content的数据有效性
-		var index_notCorrect=[];
-		var grid=this.GRID;
-		var rn=grid.row_num,cn=grid.col_num;
-		grid.setOnAddRow('close'); //关闭监听
-		grid.addRow();//为验证有效性在最后增加一行
-		for(var r=1;r<=this.Content.length;r++){
-			for(var c=1;c<=cn;c++){ //只在grid能显示的范围内验证
-				var v=Content[r-1][c-1];
-				grid.setValue(v,rn+1,c);
-				var situation_1=(grid.getControl(rn+1,c).parent().find(".pmdynaform-message-error").length>0);//显示报错
-				var situation_2=(v!="" && grid.getValue(rn+1,c)=="");//内容未被正确赋值
-				if(situation_1||situation_2){
-					index_notCorrect.push(r);
-					break; //一行存在一处错误即记录
-				}
-				if(!v && grid.getValue(rn+1,c)!=""){Content[r-1][c-1]=grid.getValue(rn+1,c);} //如果Content没有被赋值，则取默认值（dropdown下会出现此问题）
-			}
-		}
-		grid.setOnDeleteRow('close');//关闭监听
-		grid.deleteRow(rn+1);//删除增加的那行
-		return index_notCorrect;
-	}
-	
+	fag.Content=FILE?fag.modifyFileData():[]; //独立存储一份内容，此内容可以来源于FILE，如无文件就为空数组
+		
 	fag.fillGrid=function(index_array){ //根据对应的index填充grid
 		var data=JSON.parse(JSON.stringify(this.Content)); //得到数据的副本
 		var rObjArr=[];
@@ -88,7 +65,7 @@ function FAG(GRID,FILE){
 			rObjArr.push(data[index_array[i]-1]); //从原始数据中得到需要填充的数据
 		}
 		var grid=this.GRID;
-		var rn=grid.row_num;  //
+		var rn=grid.row_num;		
 		grid.setOnAddRow('close'); //关闭监听
 		for(var i=rn;i<index_array.length;i++){		
 			grid.addRow();//补足grid不足的行
@@ -115,40 +92,53 @@ function FAG(GRID,FILE){
 		this.fillGrid(index_need);
 	}
 	
-	fag.Content=FILE?fag.modifyFileData():[]; //独立存储一份内容，此内容可以来源于FILE，如无文件就为空数组
-	
-	
-	fag.changeContentWithGrid=function(fun){
+	fag.linkGridToContent=function(){
 		var grid=this.GRID;
-		grid.setOnchange(function(row,col,val){
-			var cindex=$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
-			this.Content[cindex-1][col-1]=val; //在数据中进行修改
-		});
-		grid.setOnAddRow('open',function(r,g,index){
-			this.Content.push(Array(this.col_num)); //在Content后追加一空记录
-			$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(this.Content.length); //修改增加行的index
-			//重设change事件
-			grid.setOnchange(function(row,col,val){
-				var cindex=$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
-				this.Content[cindex-1][col-1]=val; //在数据中进行修改
-			});
-		});
-		grid.setOnDeleteRow('open',function(r,g,index){
+		grid.refresh(fun_c,fun_a,fun_d);
+		
+		function fun_c(row,col,val){
+			var cindex=$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
+			fag.Content[cindex-1][col-1]=val; //在数据中进行修改
+		}
+		function fun_a(r,g,index){
+			fag.Content.push(Array(grid.col_vis.length)); //在Content后追加一空记录
+			$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(this.Content.length); //修改增加行的index
+			grid.setOnchange(fun_c);//重设change事件
+		}
+		function fun_d(r,g,index){
 			var index_array={};
-			$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")).each(function(i,element){
+			$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")).each(function(i,element){
 				index_array[Number(i)+1]=$(element).text();
 			});
 			var cindex = index_array[index]; //得到Content对应的index
-			Content.splice(Number(cindex)-1,1); //在Content删除对应项
+			fag.Content.splice(Number(cindex)-1,1); //在Content删除对应项
 			delete index_array[index];
-			
-			//重设change事件
-			grid.setOnchange(function(row,col,val){
-				var cindex=$(this.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[row-1]).text();
-				this.Content[cindex-1][col-1]=val; //在数据中进行修改
-			});
-		});
-		fun();
+			grid.setOnchange(fun_c);//重设change事件
+		}
+	}
+	
+	fag.checkContent=function(){ //按照grid要求检查Content的数据有效性
+		var index_notCorrect=[];
+		var grid=this.GRID;
+		var rn=grid.row_num,cn=grid.col_num;
+		grid.setOnAddRow('close'); //关闭监听
+		grid.addRow();//为验证有效性在最后增加一行
+		for(var r=1;r<=this.Content.length;r++){
+			for(var c=1;c<=cn;c++){ //只在grid能显示的范围内验证
+				var v=Content[r-1][c-1];
+				grid.setValue(v,rn+1,c);
+				var situation_1=(grid.getControl(rn+1,c).parent().find(".pmdynaform-message-error").length>0);//显示报错
+				var situation_2=(v!="" && grid.getValue(rn+1,c)=="");//内容未被正确赋值
+				if(situation_1||situation_2){
+					index_notCorrect.push(r);
+					break; //一行存在一处错误即记录
+				}
+				if(!v && grid.getValue(rn+1,c)!=""){Content[r-1][c-1]=grid.getValue(rn+1,c);} //如果Content没有被赋值，则取默认值（dropdown下会出现此问题）
+			}
+		}
+		grid.setOnDeleteRow('close');//关闭监听
+		grid.deleteRow(rn+1);//删除增加的那行
+		return index_notCorrect;
 	}
 	
 	return fag;

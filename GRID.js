@@ -3,8 +3,12 @@ function GRID(gridID){
 	grid.info=grid.getInfo();	
 	grid.row_num=grid.getNumberRows();
 	grid.col_vis=getVisiableColumnIndex();
-	//grid.col_num=grid.find(".row.pmdynaform-grid-thead").find("div").not(".wildcard").not(".pmdynaform-grid-removerow-static").not(":hidden").length;
+	grid.col_required=getRequiredColumns();
 	
+	grid.fun_c=function(){};
+	grid.fun_a=function(){};
+	grid.fun_d=function(){};
+		
 	function getVisiableColumnIndex(){
 		var cols=grid.find(".row.pmdynaform-grid-thead").find("div").not(".wildcard").not(".pmdynaform-grid-removerow-static");
 		var col_vis_index=[];
@@ -14,6 +18,17 @@ function GRID(gridID){
 			}
 		}
 		return col_vis_index;
+	}
+	
+	function getRequiredColumns(){
+		var col_required=[];
+		for(var i=1;i<=grid.col_vis.length;i++){
+			var cv=grid.col_vis[i-1];
+			if($(grid.find(".title-column")[cv-1]).parent().find("span.pmdynaform-field-required").length>0){
+				col_required.push(i);
+			}
+		}
+		return(col_required);
 	}
 	
 	grid.getData=function(){ //[Array(),Array(),Array()....]
@@ -58,7 +73,7 @@ function GRID(gridID){
 	}
 	
 	grid.setOnchange=function(fun){
-		var rn=this.row_num,cn=this.col_vis.length;
+		var rn=this.getNumberRows(),cn=getVisiableColumnIndex().length;		
 		for(var r=1;r<=rn;r++){
 			$.each(this.col_vis, function(index,colIndex){
 				var gc=grid.getControl(r, colIndex);
@@ -92,13 +107,15 @@ function GRID(gridID){
 		}
 	}
 
-	grid.refresh=function(fun_c,fun_a,fun_d){ //建议不单独使用各个事件，而直接使用该函数
+	grid.refresh=function(){ //建议不单独使用各个事件，而直接使用该函数
 		this.row_num=this.getNumberRows();
 		this.col_vis=getVisiableColumnIndex();
-		this.setOnchange(fun_c);
-		this.setOnAddRow(fun_a);
-		this.setOnDeleteRow(fun_d);
+		this.col_required=getRequiredColumns();
+		
+		this.setOnchange(this.fun_c);
+		this.setOnAddRow('open',this.fun_a);
+		this.setOnDeleteRow('open',this.fun_d);
 	}
-	
+		
 	return grid;
 }

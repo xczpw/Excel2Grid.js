@@ -77,9 +77,8 @@ function GRID(gridID){
 			this.onAddRow(function(){});
 		}else{ //开启监听
 			this.onAddRow(function(r, g, index){
-				fun(r,g,index);
-				
 				debugger;
+				fun(r,g,index);
 			});
 		}
 	}
@@ -89,9 +88,8 @@ function GRID(gridID){
 			this.onDeleteRow(function(){});
 		}else{	 //开启监听
 			this.onDeleteRow(function(r, g, index){
-				fun(r, g, index);
-				
 				debugger;
+				fun(r, g, index);
 			});
 		}
 	}

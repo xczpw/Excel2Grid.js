@@ -3,7 +3,7 @@ function FILE(fileID){
 	
 	file.fileID=fileID;
 	
-	file.getData=function(){
+	file.getData=function(){ //异步操作，该函数直接使用可能会出现问题
 		// Get The File From The Input
 		var oFile = $('#'+this.fileID).prop('files')[0];//获取到文件列表
 		// Create A File Reader HTML5
@@ -23,7 +23,6 @@ function FILE(fileID){
 			}
 		}
 	}
-	file.getData();
 		
 	file.export=function(data,fileName,sheetName){
 		var ws_name = sheetName;

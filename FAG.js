@@ -105,7 +105,11 @@ function FAG(GRID,FILE){
 			fag.Content[cindex-1][col-1]=val; //在数据中进行修改
 		}
 		function fun_a(r,g,index){
-			fag.Content.push(Array(grid.col_vis.length)); //在Content后追加一空记录
+			var c=Array(grid.col_vis.length);
+			for(var i=1;i<=grid.col_vis.length;i++){ //获取grid的原来内容
+				c[i]=grid.getValue(index,i);
+			}
+			fag.Content.push(c); //在Content后追加一条记录
 			$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(fag.Content.length); //修改增加行的index
 			grid.setOnchange(fun_c);//重设change事件
 		}
@@ -137,7 +141,6 @@ function FAG(GRID,FILE){
 					index_notCorrect.push(r);
 					break; //一行存在一处错误即记录
 				}
-				if(!v && grid.getValue(rn+1,c)!=""){grid.Content[r-1][c-1]=fag.getValue(rn+1,c);} //如果Content没有被赋值，则取默认值
 			}
 		}
 		grid.setOnDeleteRow('close');//关闭监听

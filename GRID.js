@@ -1,12 +1,20 @@
 function GRID(gridID){
 	var grid = $("#"+gridID);
+	initialAttributes();
 
+	
 	grid.fun_c=function(){};
 	grid.fun_a=function(){};
 	grid.fun_d=function(){};
 	
-	grid.refresh();
-	
+	function initialAttributes(){
+		grid.row_num=grid.getNumberRows();
+		grid.col_vis=getVisiableColumnIndex();
+		grid.col_required=getRequiredColumns();
+		grid.label=getLabelOfVisiableColumn();
+		grid.page_size=getFieldById(gridID).model.attributes.pageSize;
+	}
+		
 	function getVisiableColumnIndex(){
 		var cols=grid.find(".row.pmdynaform-grid-thead").find("div").not(".wildcard").not(".pmdynaform-grid-removerow-static");
 		var col_vis_index=[];
@@ -114,11 +122,7 @@ function GRID(gridID){
 	}
 
 	grid.refresh=function(){ //建议不单独使用各个事件，而直接使用该函数
-		this.row_num=this.getNumberRows();
-		this.col_vis=getVisiableColumnIndex();
-		this.col_required=getRequiredColumns();
-		this.label=getLabelOfVisiableColumn();
-		this.page_size=getFieldById(gridID).model.attributes.pageSize;
+		initialAttributes();
 		
 		this.setOnchange(this.fun_c);
 		this.setOnAddRow('open',this.fun_a);

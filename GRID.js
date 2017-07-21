@@ -46,15 +46,10 @@ function GRID(gridID){
 	
 	grid.getData=function(){ //[Array(),Array(),Array()....]
 		var data=[];
-		var label=[];
-		$.each(this.col_vis, function(index,colIndex){
-			label.push(grid.getLabel(colIndex));
-		});
-		data.push(label); //标题行
 		for(var i=1;i<=this.row_num;i++){
 			var row_data=[];
 			$.each(this.col_vis, function(index,colIndex){
-				row_data.push(grid.getValue(i,colIndex).replace(/(^\s*)|(\s*$)/g,""));
+				row_data.push(grid.getText(i,colIndex).replace(/(^\s*)|(\s*$)/g,""));
 			});
 			data.push(row_data);
 		}

@@ -65,6 +65,7 @@ function FAG(GRID,FILE){
 			rObjArr.push(data[index_array[i]-1]); //从原始数据中得到需要填充的数据
 		}
 		var grid=this.GRID;
+		grid.refresh();
 		var rn=grid.row_num;		
 		grid.setOnAddRow('close'); //关闭监听
 		for(var i=rn;i<index_array.length;i++){		

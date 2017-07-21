@@ -4,6 +4,7 @@ function GRID(gridID){
 	grid.row_num=grid.getNumberRows();
 	grid.col_vis=getVisiableColumnIndex();
 	grid.col_required=getRequiredColumns();
+	grid.label=getLabelOfVisiableColumn();
 	
 	grid.fun_c=function(){};
 	grid.fun_a=function(){};
@@ -29,6 +30,14 @@ function GRID(gridID){
 			}
 		}
 		return(col_required);
+	}
+	
+	function getLabelOfVisiableColumn(){
+		var Label=[];
+		for(var i=0;i<this.col_vis.length;i++){
+			Label[i]=grid.getLabel(this.col_vis[i]);
+		}
+		return Label;
 	}
 	
 	grid.getData=function(){ //[Array(),Array(),Array()....]
@@ -111,6 +120,7 @@ function GRID(gridID){
 		this.row_num=this.getNumberRows();
 		this.col_vis=getVisiableColumnIndex();
 		this.col_required=getRequiredColumns();
+		this.label=getLabelOfVisiableColumn();
 		
 		this.setOnchange(this.fun_c);
 		this.setOnAddRow('open',this.fun_a);

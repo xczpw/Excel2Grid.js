@@ -1,7 +1,6 @@
 function GRID(gridID){
 	var grid = $("#"+gridID);
 	initialAttributes();
-
 	
 	grid.fun_c=function(){};
 	grid.fun_a=function(){};

@@ -107,7 +107,7 @@ function FAG(GRID,FILE){
 		function fun_a(r,g,index){
 			var c=Array(grid.col_vis.length);
 			for(var i=1;i<=grid.col_vis.length;i++){ //获取grid的原来内容
-				c[i]=grid.getValue(index,i);
+				c[i-1]=grid.getValue(index,i);
 			}
 			fag.Content.push(c); //在Content后追加一条记录
 			$(grid.find(".pmdynaform-grid-row").find(".index-row").find(".row").find(".rowIndex").find("span")[index-1]).text(fag.Content.length); //修改增加行的index

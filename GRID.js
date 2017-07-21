@@ -34,8 +34,8 @@ function GRID(gridID){
 	
 	function getLabelOfVisiableColumn(){
 		var Label=[];
-		for(var i=0;i<this.col_vis.length;i++){
-			Label[i]=grid.getLabel(this.col_vis[i]);
+		for(var i=0;i<grid.col_vis.length;i++){
+			Label[i]=grid.getLabel(grid.col_vis[i]);
 		}
 		return Label;
 	}

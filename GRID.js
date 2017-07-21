@@ -1,15 +1,12 @@
 function GRID(gridID){
 	var grid = $("#"+gridID);
-	grid.info=grid.getInfo();	
-	grid.row_num=grid.getNumberRows();
-	grid.col_vis=getVisiableColumnIndex();
-	grid.col_required=getRequiredColumns();
-	grid.label=getLabelOfVisiableColumn();
-	
+
 	grid.fun_c=function(){};
 	grid.fun_a=function(){};
 	grid.fun_d=function(){};
-		
+	
+	grid.refresh();
+	
 	function getVisiableColumnIndex(){
 		var cols=grid.find(".row.pmdynaform-grid-thead").find("div").not(".wildcard").not(".pmdynaform-grid-removerow-static");
 		var col_vis_index=[];
@@ -121,6 +118,7 @@ function GRID(gridID){
 		this.col_vis=getVisiableColumnIndex();
 		this.col_required=getRequiredColumns();
 		this.label=getLabelOfVisiableColumn();
+		this.page_size=getFieldById(gridID).model.attributes.pageSize;
 		
 		this.setOnchange(this.fun_c);
 		this.setOnAddRow('open',this.fun_a);

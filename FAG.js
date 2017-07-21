@@ -56,7 +56,7 @@ function FAG(GRID,FILE){
 		return data;
 	}
 	
-	fag.Content=FILE?fag.modifyFileData():[]; //独立存储一份内容，此内容可以来源于FILE，如无文件就为空数组
+	fag.Content=FILE?fag.modifyFileData():fag.GRID.getData(); //独立存储一份内容，此内容可以来源于FILE，如无文件就得到GRID的内容
 		
 	fag.fillGrid=function(index_array){ //根据对应的index填充grid
 		var data=JSON.parse(JSON.stringify(this.Content)); //得到数据的副本

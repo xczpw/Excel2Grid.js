@@ -1,7 +1,7 @@
 function GRID(gridID){
 	var grid = $("#"+gridID);
 	initialAttributes();
-	
+
 	grid.fun_c=function(){};
 	grid.fun_a=function(){};
 	grid.fun_d=function(){};
@@ -45,11 +45,11 @@ function GRID(gridID){
 	}
 	
 	grid.getData=function(){ //[Array(),Array(),Array()....]
-		var data=[];
+		var data=[];	
 		for(var i=1;i<=this.row_num;i++){
 			var row_data=[];
 			$.each(this.col_vis, function(index,colIndex){
-				row_data.push(grid.getText(i,colIndex).replace(/(^\s*)|(\s*$)/g,""));
+				row_data.push(grid.getValue(i,colIndex).replace(/(^\s*)|(\s*$)/g,""));
 			});
 			data.push(row_data);
 		}
